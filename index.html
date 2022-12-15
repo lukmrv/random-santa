@@ -83,8 +83,15 @@
       const addedNamesArray = JSON.parse(localStorage.getItem("givers")) || [];
 
       const addName = () => {
+        const inputNameValue = newName.value;
+
+        if (addedNamesArray.includes(inputNameValue)) {
+          alert("Такое имя уже есть");
+          return;
+        }
+
         const elelment = document.createElement("div");
-        elelment.innerHTML = newName.value;
+        elelment.innerHTML = inputNameValue;
         addedNamesContainer.appendChild(elelment);
         newName.value = "";
         addedNamesArray.push(elelment.innerHTML);
