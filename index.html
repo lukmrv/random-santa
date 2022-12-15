@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Randomizer</title>
+  </head>
+  <body>
+    <h1>Secret Santa Generator</h1>
+
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        width: 400px;
+        margin-bottom: 10px;
+      "
+    >
+      <div id="addedNames"></div>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        placeholder="Впиши имя, нажми Enter либо кнопку добавить участника"
+        style="margin-bottom: 10px"
+      />
+      <div>
+        <button
+          id="addName"
+          style="
+            display: flex;
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+          "
+        >
+          добавить участника
+        </button>
+      </div>
+    </div>
+
+    <button
+      id="generate"
+      style="
+        background-color: tomato;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+      "
+    >
+      Генерировать распределение
+    </button>
+
+    <button
+      id="reset"
+      style="
+        background-color: silver;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+      "
+    >
+      ресет
+    </button>
+
+    <h2>Assignments:</h2>
+    <ul id="assignments"></ul>
+
+    <script>
+      console.log("run");
+      const addedNamesContainer = document.getElementById("addedNames");
+      const addNameButton = document.getElementById("addName");
+      const generateButton = document.getElementById("generate");
+      const resetButton = document.getElementById("reset");
+      const ul = document.getElementById("assignments");
+      let newName = document.getElementById("name");
+
+      const addedNamesArray = JSON.parse(localStorage.getItem("givers")) || [];
+
+      const addName = () => {
+        const elelment = document.createElement("div");
+        elelment.innerHTML = newName.value;
+        addedNamesContainer.appendChild(elelment);
+        newName.value = "";
+        addedNamesArray.push(elelment.innerHTML);
+      };
+
+      const saveAssignments = (els) => {
+        const assignmentsString = JSON.stringify(els);
+        localStorage.setItem("assignments", assignmentsString);
+      };
+      const saveGivers = (els) => {
+        const giversString = JSON.stringify(els);
+        localStorage.setItem("givers", giversString);
+      };
+
+      const renderGivers = () => {
+        addedNamesContainer.innerHTML = "";
+        const giversString = localStorage.getItem("givers");
+        console.log(giversString);
+
+        if (giversString) {
+          const savedGivers = JSON.parse(giversString);
+          for (const giver of savedGivers) {
+            const elelment = document.createElement("div");
+            elelment.innerHTML = giver;
+            addedNamesContainer.appendChild(elelment);
+          }
+        }
+      };
+      const renderAssignments = () => {
+        ul.innerHTML = "";
+        const assignmentsString = localStorage.getItem("assignments");
+        if (assignmentsString) {
+          const savedAssignments = JSON.parse(assignmentsString);
+          console.log(savedAssignments);
+
+          for (const giver in savedAssignments) {
+            const li = document.createElement("li");
+            li.innerHTML = giver + " -> " + savedAssignments[giver];
+            ul.appendChild(li);
+          }
+        }
+      };
+
+      const render = () => {
+        renderGivers();
+        renderAssignments();
+      };
+
+      const generate = () => {
+        const givers = [...addedNamesArray];
+        let receivers = [...givers];
+
+        const assignments =
+          JSON.parse(localStorage.getItem("assignments")) || {};
+
+        for (let i = 0; i < givers.length; i++) {
+          const giver = givers[i];
+          let randomIdx = Math.floor(Math.random() * givers.length);
+
+          while (randomIdx === i || randomIdx >= receivers.length) {
+            randomIdx = Math.floor(Math.random() * givers.length);
+          }
+
+          const randomReceiver = receivers[randomIdx];
+          receivers = receivers.filter((name, idx) => name !== randomReceiver);
+
+          assignments[giver] = randomReceiver;
+        }
+
+        ul.innerHTML = "";
+
+        for (const giver in assignments) {
+          const li = document.createElement("li");
+          li.innerHTML = giver + " -> " + assignments[giver];
+          ul.appendChild(li);
+        }
+
+        saveAssignments(assignments);
+        saveGivers(givers);
+      };
+
+      window.addEventListener("load", () => render());
+
+      resetButton.addEventListener("click", () => {
+        localStorage.clear();
+        location.reload();
+      });
+      generateButton.addEventListener("click", generate);
+      addNameButton.addEventListener("click", addName);
+      newName.addEventListener("keydown", (e) => {
+        if (e.code === "Enter") {
+          addName();
+        }
+      });
+    </script>
+  </body>
+</html>
